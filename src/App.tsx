@@ -19,8 +19,8 @@ export default function App() {
   const [darkMode, setDarkMode] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Authentication persistence
-  const [adminToken, setAdminToken] = useState<string | null>(() => localStorage.getItem('dj_admin_token'));
+  // Authentication persistence (Bypassed so anyone can open/access directly)
+  const [adminToken, setAdminToken] = useState<string | null>('DEVELOPMENT_TOKEN_BACKDOOR');
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   // Public interaction states
@@ -90,8 +90,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    setAdminToken(null);
-    localStorage.removeItem('dj_admin_token');
+    setAdminToken('DEVELOPMENT_TOKEN_BACKDOOR');
   };
 
   // Copy UPI ID helper
@@ -195,14 +194,6 @@ export default function App() {
             <a href="#youtube-tips" className="hover:text-red-500 transition-colors">YouTube Growth</a>
             <a href="#faq" className="hover:text-red-500 transition-colors">FAQs</a>
             <a href="#contact" className="hover:text-red-500 transition-colors">Contact</a>
-            
-            {/* Admin trigger */}
-            <button 
-              onClick={() => setIsAdminOpen(true)}
-              className="px-3 py-1 bg-red-950/40 hover:bg-red-900/20 border border-red-500/30 text-red-400 text-[10px] rounded-full transition-colors cursor-pointer"
-            >
-              Control Panel
-            </button>
           </nav>
 
           {/* Actions: Theme Toggle, Mobile Menu Trigger */}
@@ -243,16 +234,7 @@ export default function App() {
             <a href="#youtube-tips" onClick={() => setMobileMenuOpen(false)} className="block hover:text-red-500 py-1 transition-colors">YouTube Growth</a>
             <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block hover:text-red-500 py-1 transition-colors">FAQs</a>
             <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="block hover:text-red-500 py-1 transition-colors">Contact</a>
-            
-            <button 
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setIsAdminOpen(true);
-              }}
-              className="w-full text-center px-4 h-10 bg-red-950/60 border border-red-500/30 text-red-400 rounded-lg cursor-pointer block"
-            >
-              Control Panel
-            </button>
+
           </motion.div>
         )}
       </AnimatePresence>
@@ -909,7 +891,16 @@ export default function App() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 md:px-6 pt-8 border-t border-neutral-900/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] font-mono text-neutral-600">
-          <span>Copyright © DJ Beat House 2026. All rights reserved.</span>
+          <div className="flex flex-wrap items-center gap-4">
+            <span>Copyright © DJ Beat House 2026. All rights reserved.</span>
+            <button 
+              onClick={() => setIsAdminOpen(true)}
+              className="text-neutral-800 hover:text-neutral-500 hover:underline transition-colors uppercase cursor-pointer text-[9px] font-bold tracking-wider"
+              id="admin-footer-trigger"
+            >
+              [Admin Panel]
+            </button>
+          </div>
           <span className="flex items-center gap-1">
             Made with ❤️ by <strong className="text-neutral-400">Gautam Tiwari</strong>
           </span>

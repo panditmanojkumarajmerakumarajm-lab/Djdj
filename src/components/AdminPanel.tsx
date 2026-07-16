@@ -375,16 +375,7 @@ export default function AdminPanel({ state, onSaveState, onClose, token, onLogin
             {isSaving ? 'SAVING...' : 'SAVE CHANGES'}
           </button>
 
-          <button
-            onClick={() => {
-              onLogout();
-              localStorage.removeItem('dj_admin_info');
-            }}
-            className="p-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-lg transition-colors cursor-pointer"
-            title="Log Out"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
+
 
           <button
             onClick={onClose}
