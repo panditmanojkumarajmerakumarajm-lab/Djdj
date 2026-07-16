@@ -1,0 +1,8 @@
+{
+  "name": "DJ Beat House",
+  "description": "Modern, premium DJ website with red and black glassmorphism theme, fully editable admin panel, YouTube video portfolio, and services management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
