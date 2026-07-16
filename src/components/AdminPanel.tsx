@@ -19,6 +19,8 @@ interface AdminPanelProps {
 
 export default function AdminPanel({ state, onSaveState, onClose, token, onLogin, onLogout }: AdminPanelProps) {
   // Authentication states
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [passcode, setPasscode] = useState('');
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -127,16 +129,20 @@ export default function AdminPanel({ state, onSaveState, onClose, token, onLogin
     }, 1000);
   };
 
-  // Passcode login handler
-  const handlePasscodeLogin = async (e: React.FormEvent) => {
+  // Credentials and Passcode login handler
+  const handleCredentialsLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     setIsLoggingIn(true);
     try {
+      const payload = email && password 
+        ? { email, password }
+        : { passcode };
+
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passcode })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -145,7 +151,7 @@ export default function AdminPanel({ state, onSaveState, onClose, token, onLogin
         localStorage.setItem('dj_admin_info', JSON.stringify({ email: data.email, name: data.name, picture: data.picture }));
         fetchLogs();
       } else {
-        setLoginError(data.error || 'Incorrect Admin passcode.');
+        setLoginError(data.error || 'Incorrect Admin credentials or passcode.');
       }
     } catch (err) {
       setLoginError('Server unreachable. Make sure the development server is running.');
@@ -270,23 +276,43 @@ export default function AdminPanel({ state, onSaveState, onClose, token, onLogin
 
             <div className="flex items-center my-4">
               <div className="flex-grow border-t border-neutral-800"></div>
-              <span className="px-3 text-[10px] font-mono text-neutral-500 uppercase">Or Secure Passcode</span>
+              <span className="px-3 text-[10px] font-mono text-neutral-500 uppercase">Or Admin Credentials</span>
               <div className="flex-grow border-t border-neutral-800"></div>
             </div>
 
-            {/* Passcode Login Fallback */}
-            <form onSubmit={handlePasscodeLogin} className="space-y-4">
+            {/* Credentials Login Form */}
+            <form onSubmit={handleCredentialsLogin} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-mono text-neutral-400 uppercase tracking-wider mb-1.5">Enter Admin Passcode</label>
+                <label className="block text-[10px] font-mono text-neutral-400 uppercase tracking-wider mb-1.5">Gmail Address</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-3 flex items-center text-neutral-500">
+                    <Mail className="w-4 h-4" />
+                  </span>
+                  <input 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. rk89experiment@gmail.com"
+                    className="w-full h-11 pl-9 pr-4 bg-neutral-950 border border-neutral-800 text-xs text-white rounded-xl placeholder-neutral-600 focus:outline-none focus:border-red-500 transition-colors"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono text-neutral-400 uppercase tracking-wider mb-1.5">Password / Passcode</label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-3 flex items-center text-neutral-500">
                     <Lock className="w-4 h-4" />
                   </span>
                   <input 
                     type="password" 
-                    value={passcode}
-                    onChange={(e) => setPasscode(e.target.value)}
-                    placeholder="Enter passcode (e.g. admin123)"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setPasscode(e.target.value); // Sync with fallback passcode state
+                    }}
+                    placeholder="Enter password (e.g. admin123)"
                     className="w-full h-11 pl-9 pr-4 bg-neutral-950 border border-neutral-800 text-xs text-white rounded-xl placeholder-neutral-600 focus:outline-none focus:border-red-500 transition-colors"
                     required
                   />

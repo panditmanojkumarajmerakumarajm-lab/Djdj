@@ -132,11 +132,12 @@ async function startServer() {
   // API 4: Admin Login
   app.post('/api/login', async (req, res) => {
     try {
-      const { googleAccessToken, passcode } = req.body;
+      const { googleAccessToken, passcode, email, password } = req.body;
       const ip = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
 
       // Admin Gmail filter
       const adminEmail = process.env.ADMIN_EMAIL || 'rk89experiment@gmail.com';
+      const allowedPasscode = process.env.ADMIN_PASSCODE || 'admin123';
 
       if (googleAccessToken) {
         // Authenticate with Google
@@ -173,8 +174,30 @@ async function startServer() {
         }
       }
 
+      // Email and Password authentication (explicit request)
+      if (email && password) {
+        if (email.trim().toLowerCase() === adminEmail.trim().toLowerCase() && password === allowedPasscode) {
+          const sessionToken = `session-${Math.random().toString(36).substr(2, 16)}-${Date.now()}`;
+          activeSessions.add(sessionToken);
+
+          await logActivity('Admin Logged In', `Successfully authenticated via Email: ${email}`, ip);
+
+          res.json({
+            success: true,
+            token: sessionToken,
+            email: adminEmail,
+            name: 'Beat House Admin (Email)',
+            picture: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150',
+          });
+          return;
+        } else {
+          await logActivity('Failed Login Attempt', `Failed email login attempt for: ${email}`, ip);
+          res.status(401).json({ error: 'Invalid Gmail address or password.' });
+          return;
+        }
+      }
+
       // Passcode authentication (secure local testing fallback or override)
-      const allowedPasscode = process.env.ADMIN_PASSCODE || 'admin123';
       if (passcode === allowedPasscode) {
         const sessionToken = `session-${Math.random().toString(36).substr(2, 16)}-${Date.now()}`;
         activeSessions.add(sessionToken);
@@ -191,8 +214,8 @@ async function startServer() {
         return;
       }
 
-      await logActivity('Failed Login Attempt', 'Attempted login with incorrect passcode.', ip);
-      res.status(401).json({ error: 'Invalid admin passcode or Google credential.' });
+      await logActivity('Failed Login Attempt', 'Attempted login with incorrect credentials.', ip);
+      res.status(401).json({ error: 'Invalid admin credentials or passcode.' });
     } catch (err) {
       console.error('Login error:', err);
       res.status(500).json({ error: 'Internal Server Error' });
