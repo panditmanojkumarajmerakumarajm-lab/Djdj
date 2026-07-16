@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import path from 'path';
 import fs from 'fs/promises';
@@ -136,7 +139,18 @@ async function startServer() {
       const ip = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
 
       // Admin Gmail filter
-      const adminEmail = process.env.ADMIN_EMAIL || 'rk89experiment@gmail.com';
+      const defaultEmail = 'rk89experiment@gmail.com';
+      const backupEmail = 'djbeathouse1900@gmail.com';
+      const envAdminEmail = process.env.ADMIN_EMAIL || '';
+      
+      const allowedEmails = [
+        defaultEmail.trim().toLowerCase(),
+        backupEmail.trim().toLowerCase()
+      ];
+      if (envAdminEmail.trim()) {
+        allowedEmails.push(envAdminEmail.trim().toLowerCase());
+      }
+
       const allowedPasscode = process.env.ADMIN_PASSCODE || 'admin123';
 
       if (googleAccessToken) {
@@ -148,7 +162,9 @@ async function startServer() {
             return;
           }
           const profile = await googleRes.json();
-          if (profile.email && profile.email.toLowerCase() === adminEmail.toLowerCase()) {
+          const profileEmail = (profile.email || '').trim().toLowerCase();
+          
+          if (profileEmail && allowedEmails.includes(profileEmail)) {
             const sessionToken = `session-${Math.random().toString(36).substr(2, 16)}-${Date.now()}`;
             activeSessions.add(sessionToken);
 
@@ -176,7 +192,8 @@ async function startServer() {
 
       // Email and Password authentication (explicit request)
       if (email && password) {
-        if (email.trim().toLowerCase() === adminEmail.trim().toLowerCase() && password === allowedPasscode) {
+        const inputEmail = email.trim().toLowerCase();
+        if (allowedEmails.includes(inputEmail) && password === allowedPasscode) {
           const sessionToken = `session-${Math.random().toString(36).substr(2, 16)}-${Date.now()}`;
           activeSessions.add(sessionToken);
 
@@ -185,7 +202,7 @@ async function startServer() {
           res.json({
             success: true,
             token: sessionToken,
-            email: adminEmail,
+            email: email,
             name: 'Beat House Admin (Email)',
             picture: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150',
           });
@@ -207,7 +224,7 @@ async function startServer() {
         res.json({
           success: true,
           token: sessionToken,
-          email: adminEmail,
+          email: envAdminEmail || defaultEmail,
           name: 'Beat House Admin (Passcode)',
           picture: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150',
         });
